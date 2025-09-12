@@ -1,54 +1,162 @@
+
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(120deg, #f4f6f8 0%, #e3e9f7 100%);
   margin: 0;
   padding: 0;
+  min-height: 100vh;
 }
+
 .auth-container, .dashboard-container {
-  max-width: 400px;
-  margin: 2rem auto;
+  max-width: 420px;
+  margin: 2.5rem auto;
   background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 2.5rem 2rem 2rem 2rem;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(44,62,80,0.10), 0 1.5px 4px 0 rgba(44,62,80,0.08);
+  position: relative;
 }
-input, select, button {
-  display: block;
-  width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+
+.auth-container h2, .dashboard-container h2 {
+  text-align: center;
+  color: #2d3a4b;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
 }
+
+form, .add-goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+input, select {
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #cfd8dc;
+  font-size: 1rem;
+  background: #f7fafc;
+  transition: border 0.2s;
+}
+input:focus, select:focus {
+  border: 1.5px solid #4caf50;
+  outline: none;
+}
+
 button {
-  background: #4caf50;
+  background: linear-gradient(90deg, #4caf50 60%, #2196f3 100%);
   color: #fff;
   border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+  transition: background 0.2s, transform 0.1s;
 }
 button:hover {
-  background: #388e3c;
+  background: linear-gradient(90deg, #388e3c 60%, #1976d2 100%);
+  transform: translateY(-2px) scale(1.03);
 }
-.completed {
+
+.goal-list {
+  margin-top: 2rem;
+}
+.goal-list h3 {
+  color: #1976d2;
+  margin-bottom: 1rem;
+}
+.goal-list ul {
+  list-style: none;
+  padding: 0;
+}
+.goal-list li {
+  background: #f7fafc;
+  border-radius: 8px;
+  margin-bottom: 0.7rem;
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  box-shadow: 0 1px 4px rgba(33,150,243,0.04);
+  position: relative;
+}
+.goal-list li.completed {
   text-decoration: line-through;
   color: #888;
+  background: #e0e0e0;
 }
+.goal-list button {
+  width: fit-content;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  background: #2196f3;
+  color: #fff;
+  box-shadow: none;
+}
+.goal-list button:hover {
+  background: #1976d2;
+}
+
+.add-goal-form {
+  margin-bottom: 2rem;
+  background: #f7fafc;
+  padding: 1.2rem 1rem 0.5rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(76,175,80,0.04);
+}
+
 .error {
-  color: red;
+  color: #e53935;
+  background: #ffebee;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
 }
+
 .progress-dashboard {
   margin-bottom: 2rem;
+  background: #f7fafc;
+  padding: 1.2rem 1rem 0.5rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(33,150,243,0.04);
+}
+.progress-dashboard h3 {
+  color: #4caf50;
+  margin-bottom: 1rem;
+}
+.progress-bars {
+  margin-bottom: 1.2rem;
 }
 .badges ul {
   list-style: none;
   padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .badges li {
   display: inline-block;
-  background: #2196f3;
+  background: linear-gradient(90deg, #2196f3 60%, #4caf50 100%);
   color: #fff;
-  padding: 0.3rem 0.7rem;
-  border-radius: 12px;
-  margin-right: 0.5rem;
-  margin-bottom: 0.5rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(33,150,243,0.08);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .auth-container, .dashboard-container {
+    max-width: 98vw;
+    padding: 1.2rem 0.5rem 1rem 0.5rem;
+  }
+  .add-goal-form, .progress-dashboard {
+    padding: 0.7rem 0.3rem 0.3rem 0.3rem;
+  }
 }
