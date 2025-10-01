@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "chromedriver": "^140.0.4",
+    "selenium-webdriver": "^4.35.0"
+  }
+}
