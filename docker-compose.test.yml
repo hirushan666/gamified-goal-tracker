@@ -16,6 +16,7 @@ services:
     environment:
       - MONGO_URI=mongodb://mongo:27017/gamified-goal-tracker-test
       - PORT=5000
+      - NODE_OPTIONS=--experimental-vm-modules
     depends_on:
       - mongo
     command: sh -c "npm install && npm test"
