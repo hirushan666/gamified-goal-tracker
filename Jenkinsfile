@@ -35,20 +35,36 @@ pipeline {
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build & Push Backend') {
             steps {
                 script {
-                    echo 'Building Frontend...'
-                    // Run build in a Node container
-                    // We use an anonymous volume for node_modules here as well for clean build
-                    sh '''
-                        docker run --rm \
-                        -v "$PWD/frontend":/app \
-                        -v /app/node_modules \
-                        -w /app \
-                        node:20 \
-                        sh -c "npm install && npm run build"
-                    '''
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        
+                        // Build Backend
+                        sh 'docker build -t hirushanww/gamified-goal-tracker-backend:latest ./backend'
+                        sh "docker build -t hirushanww/gamified-goal-tracker-backend:${BUILD_NUMBER} ./backend"
+                        
+                        // Push Backend
+                        sh 'docker push hirushanww/gamified-goal-tracker-backend:latest'
+                        sh "docker push hirushanww/gamified-goal-tracker-backend:${BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+
+        stage('Build & Push Frontend') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        // Build Frontend
+                        sh 'docker build -t hirushanww/gamified-goal-tracker-frontend:latest ./frontend'
+                        sh "docker build -t hirushanww/gamified-goal-tracker-frontend:${BUILD_NUMBER} ./frontend"
+                        
+                        // Push Frontend
+                        sh 'docker push hirushanww/gamified-goal-tracker-frontend:latest'
+                        sh "docker push hirushanww/gamified-goal-tracker-frontend:${BUILD_NUMBER}"
+                    }
                 }
             }
         }
