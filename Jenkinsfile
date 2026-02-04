@@ -68,6 +68,36 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to AWS') {
+            steps {
+                sshagent(['ec2-ssh-key']) {
+                    // Copy prod compose file to server
+                    sh "scp -o StrictHostKeyChecking=no docker-compose.prod.yml ubuntu@16.170.252.190:/home/ubuntu/docker-compose.yml"
+                    
+                    // Allow time for transfer
+                    sleep 2
+                    
+                    // SSH and Deploy
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ubuntu@16.170.252.190 '
+                            # Create .env file if it does not exist (placeholder)
+                            if [ ! -f .env ]; then
+                                echo "MONGO_URI=mongodb://mongo:27017/gamified-goal-tracker" > .env
+                                echo "PORT=5000" >> .env
+                                echo "JWT_SECRET=production_secret_change_me" >> .env
+                            fi
+                            
+                            # Pull latest images
+                            docker-compose pull
+                            
+                            # Restart services
+                            docker-compose up -d --remove-orphans
+                        '
+                    """
+                }
+            }
+        }
     }
 
     post {
