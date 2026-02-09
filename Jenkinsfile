@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    environment {
+        APP_SERVER_IP = '13.53.50.80'  
+        DOCKER_USER   = 'hirushanww'
+        BACKEND_IMAGE = 'gamified-goal-tracker-backend'
+        FRONTEND_IMAGE= 'gamified-goal-tracker-frontend'
+        IMAGE_TAG     = "${BUILD_NUMBER}"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -10,7 +18,6 @@ pipeline {
 
         stage('Clean Environment') {
             steps {
-                // Ensure no conflicting containers are running and clean up old test volumes
                 sh 'docker-compose -f docker-compose.test.yml down -v --remove-orphans || true'
             }
         }
@@ -19,8 +26,6 @@ pipeline {
             steps {
                 script {
                     echo 'Starting MongoDB and running Backend Tests...'
-                    // We run npm install && npm test inside the container
-                    // The volume /app/node_modules prevents polluting the host with Linux binaries
                     sh 'docker-compose -f docker-compose.test.yml run --rm backend-test'
                 }
             }
@@ -41,13 +46,13 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                         sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
                         
-                        // Build Backend
-                        sh 'docker build -t hirushanww/gamified-goal-tracker-backend:latest ./backend'
-                        sh "docker build -t hirushanww/gamified-goal-tracker-backend:${BUILD_NUMBER} ./backend"
+                        // Build
+                        sh "docker build -t ${DOCKER_USER}/${BACKEND_IMAGE}:latest ./backend"
+                        sh "docker build -t ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG} ./backend"
                         
-                        // Push Backend
-                        sh 'docker push hirushanww/gamified-goal-tracker-backend:latest'
-                        sh "docker push hirushanww/gamified-goal-tracker-backend:${BUILD_NUMBER}"
+                        // Push
+                        sh "docker push ${DOCKER_USER}/${BACKEND_IMAGE}:latest"
+                        sh "docker push ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}"
                     }
                 }
             }
@@ -57,44 +62,63 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                        // Build Frontend
-                        sh 'docker build -t hirushanww/gamified-goal-tracker-frontend:latest ./frontend'
-                        sh "docker build -t hirushanww/gamified-goal-tracker-frontend:${BUILD_NUMBER} ./frontend"
+                        // Build
+                        sh "docker build -t ${DOCKER_USER}/${FRONTEND_IMAGE}:latest ./frontend"
+                        sh "docker build -t ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} ./frontend"
                         
-                        // Push Frontend
-                        sh 'docker push hirushanww/gamified-goal-tracker-frontend:latest'
-                        sh "docker push hirushanww/gamified-goal-tracker-frontend:${BUILD_NUMBER}"
+                        // Push
+                        sh "docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:latest"
+                        sh "docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}"
                     }
                 }
             }
         }
 
-        stage('Deploy to AWS') {
+        stage('Deploy to Production') {
             steps {
-                sshagent(['ec2-ssh-key']) {
-                    // Copy prod compose file to server
-                    sh "scp -o StrictHostKeyChecking=no docker-compose.prod.yml ubuntu@16.170.252.190:/home/ubuntu/docker-compose.yml"
-                    
-                    // Allow time for transfer
-                    sleep 2
-                    
-                    // SSH and Deploy
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ubuntu@16.170.252.190 '
-                            # Create .env file if it does not exist (placeholder)
-                            if [ ! -f .env ]; then
-                                echo "MONGO_URI=mongodb://mongo:27017/gamified-goal-tracker" > .env
-                                echo "PORT=5000" >> .env
-                                echo "JWT_SECRET=production_secret_change_me" >> .env
-                            fi
-                            
-                            # Pull latest images
-                            docker-compose pull
-                            
-                            # Restart services
-                            docker-compose up -d --remove-orphans
-                        '
-                    """
+                sshagent(['prod-ssh-key']) { // <--- Uses the SSH key credential
+                    script {
+                        def dockerRunBackend = """
+                            docker run -d \\
+                            --name backend \\
+                            --network goal-tracker-net \\
+                            -p 3000:3000 \\
+                            -e MONGO_URI='mongodb://mongo:27017/goaltracker' \\
+                            ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
+                        """
+                        // ^ Note: You might need a real MongoDB URL here if not using a containerized DB on prod
+
+                        def dockerRunFrontend = """
+                            docker run -d \\
+                            --name frontend \\
+                            --network goal-tracker-net \\
+                            -p 80:80 \\
+                            ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}
+                        """
+
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER_IP} '
+                                echo "🚀 Starting Deployment on Production Server..."
+                                
+                                # 1. Pull new images
+                                docker pull ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
+                                docker pull ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}
+
+                                # 2. Stop & Remove Old Containers
+                                docker stop backend frontend || true
+                                docker rm backend frontend || true
+
+                                # 3. Run Backend
+                                ${dockerRunBackend}
+
+                                # 4. Run Frontend
+                                ${dockerRunFrontend}
+                                
+                                # 5. Cleanup unused images (Optional space saving)
+                                docker image prune -f
+                            '
+                        """
+                    }
                 }
             }
         }
@@ -102,7 +126,6 @@ pipeline {
 
     post {
         always {
-            // Teardown test environment
             sh 'docker-compose -f docker-compose.test.yml down -v --remove-orphans || true'
         }
     }
