@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_SERVER_IP = '13.53.50.80'  
+        APP_SERVER_IP = '16.171.19.133'  
         DOCKER_USER   = 'hirushanww'
         BACKEND_IMAGE = 'gamified-goal-tracker-backend'
         FRONTEND_IMAGE= 'gamified-goal-tracker-frontend'
