@@ -63,9 +63,12 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                         // Build
-                        sh "docker build -t ${DOCKER_USER}/${FRONTEND_IMAGE}:latest ./frontend"
-                        sh "docker build -t ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} ./frontend"
-                        
+                        def backendUrl = "http://${APP_SERVER_IP}:3000"
+
+                        // 2. Build with the argument
+                        sh "docker build --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:latest ./frontend"
+                        sh "docker build --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} ./frontend"
+                                
                         // Push
                         sh "docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:latest"
                         sh "docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}"
