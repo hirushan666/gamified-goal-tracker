@@ -65,9 +65,11 @@ pipeline {
                         // Build
                         def backendUrl = "http://${APP_SERVER_IP}:3000"
 
+                        echo "Building Frontend with API URL: ${backendUrl}" // <--- Add this debug line        
+
                         // 2. Build with the argument
-                        sh "docker build --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:latest ./frontend"
-                        sh "docker build --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} ./frontend"
+                        sh "docker build --no-cache --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:latest ./frontend"
+                        sh "docker build --no-cache --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} ./frontend"
                                 
                         // Push
                         sh "docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:latest"
