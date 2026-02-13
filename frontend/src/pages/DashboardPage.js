@@ -3,6 +3,8 @@ import axios from "axios";
 import GoalList from "../components/GoalList";
 import AddGoalForm from "../components/AddGoalForm";
 import ProgressDashboard from "../components/ProgressDashboard";
+import Sidebar from "../components/Sidebar";
+import StatsCard from "../components/StatsCard";
 
 function DashboardPage() {
   const [goals, setGoals] = useState([]);
@@ -37,36 +39,82 @@ function DashboardPage() {
     fetchProgress();
   }, []);
 
+  // Calculate some quick stats for the cards
+  const completedGoals = goals.filter((g) => g.status === "completed").length;
+  const totalGoals = goals.length;
+  const pendingGoals = totalGoals - completedGoals;
+
   return (
-    <div className="dashboard-container" style={{ position: "relative" }}>
-      <button
-        onClick={handleLogout}
-        style={{
-          position: "absolute",
-          top: 12,
-          right: 12,
-          padding: "0.1rem 0.4rem",
-          fontSize: "0.7rem",
-          background: "#f44336",
-          color: "#fff",
-          border: "none",
-          borderRadius: "2px",
-          cursor: "pointer",
-          minWidth: "auto",
-          zIndex: 10,
-        }}
-        title="Logout"
-      >
-        Logout
-      </button>
-      <h2 style={{ textAlign: "center" }}>Dashboard</h2>
-      <ProgressDashboard progress={progress} />
-      <AddGoalForm onGoalAdded={fetchGoals} />
-      <GoalList
-        goals={goals}
-        onGoalUpdated={fetchGoals}
-        onGoalDeleted={fetchGoals}
-      />
+    <div className="app-layout">
+      <Sidebar onLogout={handleLogout} />
+
+      <main className="main-content">
+        <header className="top-header">
+          <h1>Welcome back!</h1>
+          <p className="date">
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        </header>
+
+        <div className="stats-grid">
+          <StatsCard
+            title="Total XP"
+            value={progress.xp}
+            icon="✨"
+            color="#ec4899" /* Pink */
+          />
+          <StatsCard
+            title="Current Streak"
+            value={`${progress.streak} days`}
+            icon="🔥"
+            color="#f59e0b" /* Amber */
+          />
+          <StatsCard
+            title="Completed Goals"
+            value={completedGoals}
+            icon="✅"
+            color="#10b981" /* Emerald */
+          />
+          <StatsCard
+            title="Pending Goals"
+            value={pendingGoals}
+            icon="⏳"
+            color="#6366f1" /* Indigo */
+          />
+        </div>
+
+        <div className="dashboard-grid">
+          <div className="left-column">
+            <div className="card">
+              <div className="card-header">
+                <h2>Your Goals</h2>
+                {/* Could add a filter/sort here later */}
+              </div>
+              <GoalList
+                goals={goals}
+                onGoalUpdated={fetchGoals}
+                onGoalDeleted={fetchGoals}
+              />
+            </div>
+          </div>
+
+          <div className="right-column">
+            <div className="card">
+              <h2>Add New Goal</h2>
+              <AddGoalForm onGoalAdded={fetchGoals} />
+            </div>
+
+            <div className="card">
+              <ProgressDashboard progress={progress} />
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
