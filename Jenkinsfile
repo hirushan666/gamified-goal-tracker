@@ -82,7 +82,7 @@ pipeline {
                             docker run -d \\
                             --name backend \\
                             --network goal-tracker-net \\
-                            -p 3000:3000 \\
+                            -p 3000:5000 \\
                             -e MONGO_URI='mongodb://mongo:27017/goaltracker' \\
                             ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
                         """
