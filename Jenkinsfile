@@ -79,46 +79,46 @@ pipeline {
 
         stage('Deploy to Production') {
             steps {
-                sshagent(['prod-ssh-key']) { // <--- Uses the SSH key credential
+                sshagent(['prod-ssh-key']) {
                     script {
-                        def dockerRunBackend = """
-                            docker run -d \\
-                            --name backend \\
-                            --network goal-tracker-net \\
-                            -p 3000:5000 \\
-                            -e MONGO_URI='mongodb://mongo:27017/goaltracker' \\
-                            -e JWT_SECRET='mySuperSecretKey123' \\    
-                            ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
-                        """
-                        // ^ Note: You might need a real MongoDB URL here if not using a containerized DB on prod
+                        // 1. Define Backend Command (Safe Way - No Backslashes!)
+                        def dockerRunBackend = [
+                            "docker run -d",
+                            "--name backend",
+                            "--network goal-tracker-net",
+                            "-p 3000:5000",
+                            "-e MONGO_URI='mongodb://mongo:27017/goaltracker'",
+                            "-e JWT_SECRET='mySuperSecretKey123'",
+                            "${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}"
+                        ].join(" ")
 
-                        def dockerRunFrontend = """
-                            docker run -d \\
-                            --name frontend \\
-                            --network goal-tracker-net \\
-                            -p 80:80 \\
-                            ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}
-                        """
+                        // 2. Define Frontend Command (Safe Way)
+                        def dockerRunFrontend = [
+                            "docker run -d",
+                            "--name frontend",
+                            "--network goal-tracker-net",
+                            "-p 80:80",
+                            "${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}"
+                        ].join(" ")
 
+                        // 3. Send to Server
                         sh """
                             ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER_IP} '
-                                echo "🚀 Starting Deployment on Production Server..."
+                                echo "🚀 Starting Deployment..."
                                 
-                                # 1. Pull new images
+                                # Pull Images
                                 docker pull ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
                                 docker pull ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}
 
-                                # 2. Stop & Remove Old Containers
+                                # Stop Old
                                 docker stop backend frontend || true
                                 docker rm backend frontend || true
 
-                                # 3. Run Backend
+                                # Run New
                                 ${dockerRunBackend}
-
-                                # 4. Run Frontend
                                 ${dockerRunFrontend}
                                 
-                                # 5. Cleanup unused images (Optional space saving)
+                                # Cleanup
                                 docker image prune -f
                             '
                         """
