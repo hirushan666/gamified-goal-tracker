@@ -57,7 +57,7 @@ function LoginPage() {
       <div className="auth-form-section">
         <div className="auth-container">
           <div className="auth-header">
-            <h2>Welcome back</h2>
+            <h2>Hirushan</h2>
             <p className="auth-subtitle">Sign in to your account to continue</p>
           </div>
 
