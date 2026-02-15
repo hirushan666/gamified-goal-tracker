@@ -13,7 +13,7 @@ function Sidebar({ onLogout }) {
     <aside className="sidebar">
       <div className="sidebar-header">
         <div className="sidebar-logo">🎯</div>
-        <h2>HabitTracker2</h2>
+        <h2>HabitTracker</h2>
       </div>
 
       <nav className="sidebar-nav">
