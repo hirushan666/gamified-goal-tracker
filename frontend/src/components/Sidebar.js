@@ -1,13 +1,22 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 function Sidebar({ onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const username = localStorage.getItem("username") || "User";
 
   const handleLogout = () => {
     onLogout();
     navigate("/");
   };
+
+  const navItems = [
+    { path: "/dashboard", label: "Dashboard", icon: "📊" },
+    { path: "/goals", label: "Goals", icon: "🎯" },
+    { path: "/friends", label: "Friends", icon: "👥" },
+    { path: "/challenges", label: "Challenges", icon: "⚔️" },
+  ];
 
   return (
     <aside className="sidebar">
@@ -18,20 +27,24 @@ function Sidebar({ onLogout }) {
 
       <nav className="sidebar-nav">
         <ul>
-          <li>
-            <Link to="/dashboard" className="active">
-              <span className="nav-icon">📊</span> Dashboard
-            </Link>
-          </li>
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <Link
+                to={item.path}
+                className={location.pathname === item.path ? "active" : ""}
+              >
+                <span className="nav-icon">{item.icon}</span> {item.label}
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
 
       <div className="sidebar-footer">
         <div className="user-info">
-          <div className="avatar">U</div>
+          <div className="avatar">{username.charAt(0).toUpperCase()}</div>
           <div className="user-details">
-            <span className="name">User</span>
-            <span className="role">Free Plan</span>
+            <span className="name">{username}</span>
           </div>
         </div>
         <button
@@ -48,4 +61,3 @@ function Sidebar({ onLogout }) {
 }
 
 export default Sidebar;
-//sss

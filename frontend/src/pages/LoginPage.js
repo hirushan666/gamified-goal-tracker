@@ -19,6 +19,7 @@ function LoginPage() {
         { username, password },
       );
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("username", res.data.username);
       navigate("/dashboard");
     } catch (err) {
       setError("Invalid credentials. Please try again.");
@@ -49,6 +50,10 @@ function LoginPage() {
             <div className="auth-feature">
               <span className="auth-feature-icon">🏆</span>
               <span>Unlock badges and track progress</span>
+            </div>
+            <div className="auth-feature">
+              <span className="auth-feature-icon">⚔️</span>
+              <span>Connect with friends and compete in challenges</span>
             </div>
           </div>
         </div>

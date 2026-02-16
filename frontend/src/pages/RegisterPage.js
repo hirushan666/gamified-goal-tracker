@@ -25,11 +25,16 @@ function RegisterPage() {
 
     setLoading(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, {
-        username,
-        password,
-      });
-      navigate("/");
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/register`,
+        {
+          username,
+          password,
+        },
+      );
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("username", res.data.username);
+      navigate("/dashboard");
     } catch (err) {
       setError("Registration failed. Username may already be taken.");
     } finally {
