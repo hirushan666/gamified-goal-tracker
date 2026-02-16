@@ -20,7 +20,7 @@ _Architected with Terraform, Configured with Ansible, and Orchestrated with Dock
 
 This project demonstrates a **Cloud-Native DevOps Lifecycle**. The infrastructure follows the **Infrastructure as Code (IaC)** paradigm, and deployment is handled via a **Zero-Touch** pipeline.
 
-![System Architecture](./assets/architecture.jpg)
+![System Architecture](./assets/architecture.png)
 
 ### 🚀 Key Engineering Features
 
@@ -53,7 +53,7 @@ This project exploits a modern tech stack focused on scalability and automation.
 
 The application encourages habit consistency through gamification (XP, streaks, and rewards).
 
-![Login Page](./assets/demo.jpg)
+![Login Page](./assets/demo.png)
 
 ---
 
