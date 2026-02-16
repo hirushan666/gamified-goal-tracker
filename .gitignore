@@ -39,3 +39,9 @@ backend/coverage/
 
 # Ignore test output
 *.test-results.json
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.backup
+

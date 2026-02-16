@@ -46,11 +46,9 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                         sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
                         
-                        // Build
                         sh "docker build -t ${DOCKER_USER}/${BACKEND_IMAGE}:latest ./backend"
                         sh "docker build -t ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG} ./backend"
                         
-                        // Push
                         sh "docker push ${DOCKER_USER}/${BACKEND_IMAGE}:latest"
                         sh "docker push ${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}"
                     }
@@ -62,16 +60,13 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                        // Build
                         def backendUrl = "http://${APP_SERVER_IP}:3000"
 
-                        echo "Building Frontend with API URL: ${backendUrl}" // <--- Add this debug line        
+                        echo "Building Frontend with API URL: ${backendUrl}"         
 
-                        // 2. Build with the argument
                         sh "docker build --no-cache --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:latest ./frontend"
                         sh "docker build --no-cache --build-arg REACT_APP_API_URL=${backendUrl} -t ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG} ./frontend"
                                 
-                        // Push
                         sh "docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:latest"
                         sh "docker push ${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}"
                     }
@@ -83,7 +78,6 @@ pipeline {
             steps {
                 sshagent(['prod-ssh-key']) {
                     script {
-                        // 1. Define Backend Command (Safe Way - No Backslashes!)
                         def dockerRunBackend = [
                             "docker run -d",
                             "--name backend",
@@ -94,7 +88,6 @@ pipeline {
                             "${DOCKER_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}"
                         ].join(" ")
 
-                        // 2. Define Frontend Command (Safe Way)
                         def dockerRunFrontend = [
                             "docker run -d",
                             "--name frontend",
@@ -103,7 +96,6 @@ pipeline {
                             "${DOCKER_USER}/${FRONTEND_IMAGE}:${IMAGE_TAG}"
                         ].join(" ")
 
-                        // 3. Send to Server
                         sh """
                             ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER_IP} '
                                 echo "🚀 Starting Deployment..."

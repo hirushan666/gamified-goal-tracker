@@ -1,0 +1,80 @@
+---
+- name: Install Jenkins and Docker
+  hosts: jenkins_server
+  become: yes
+
+  tasks:
+    # 1️⃣ Remove the broken repo file to stop the crash
+    - name: Remove broken Jenkins repo file
+      file:
+        path: /etc/apt/sources.list.d/jenkins.list
+        state: absent
+
+    # 2️⃣ Remove the OLD key file so we are forced to get the new one
+    - name: Remove old Jenkins key
+      file:
+        path: /usr/share/keyrings/jenkins-keyring.asc
+        state: absent
+
+    # 3️⃣ Install required tools
+    - name: Install required tools
+      apt:
+        name:
+          - curl
+          - gnupg
+          - git
+        state: present
+        update_cache: yes
+
+    # 4️⃣ Download the NEW 2026 Jenkins GPG key (Force is crucial here)
+    - name: Download Jenkins GPG key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+        mode: '0644'
+        force: yes  # <--- THIS FIXES YOUR ISSUE
+
+    # 5️⃣ Add the repository referencing the signed key
+    - name: Add Jenkins repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        filename: jenkins
+        state: present
+
+    # 6️⃣ Update cache (Should work now)
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    # 7️⃣ Install Java
+    - name: Install Java
+      apt:
+        name: openjdk-17-jre
+        state: present
+
+    # 8️⃣ Install Jenkins
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    # 9️⃣ Install Docker
+    - name: Install Docker
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+
+    # 🔟 Configure Permissions
+    - name: Add Jenkins user to Docker group
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
+
+    # 1️⃣1️⃣ Restart Services
+    - name: Restart Jenkins
+      service:
+        name: jenkins
+        state: restarted
