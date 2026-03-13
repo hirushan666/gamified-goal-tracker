@@ -77,13 +77,4 @@ The production environment is hosted on an AWS EC2 instance, provisioned via Ter
 
 ![AWS Console](./assets/deployment.png)
 
-### Manual Deployment Command (Reference)
 
-The pipeline executes the following logic automatically:
-
-```bash
-docker run -d --name backend --network goal-tracker-net -p 3000:5000 \
-  -e MONGO_URI='mongodb://mongo:27017/goaltracker' \
-  -e JWT_SECRET='${SECRET}' \
-  hirushanww/gamified-goal-tracker-backend:latest
-```
